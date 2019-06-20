@@ -44,6 +44,7 @@ app.get('/ideas', (req, res) => {
 
 io.on('connection', function (socket) {
   console.log('a user connected');
+  socket.emit('votes-updated', ideas);
   socket.on('vote-sent', (vote) => {
     ideas = ideas.map((v) => {
       if (vote.id === v.id) {
@@ -55,13 +56,11 @@ io.on('connection', function (socket) {
       }
       return v;
     })
+    console.log(ideas);
     io.emit('votes-updated', ideas);
   });
 });
 
-io.on('votes-connected', function (socket) {
-  socket.emit('votes-updated', ideas);
-});
 
 
 http.listen(port, () => console.log(`Example app listening on port ${port}!`))
