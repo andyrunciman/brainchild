@@ -1,11 +1,13 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
+var bodyParser = require('body-parser');
 var http = require('http').createServer(app);
-const port = 3000
+const port = 3000;
 const io = require('socket.io')(http);
 var cors = require('cors')
 
 app.use(cors());
+app.use(bodyParser.json())
 
 let ideas = [
   {
@@ -30,7 +32,7 @@ let ideas = [
 
 //app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/vote', function (req, res) {
+app.get('/', function (req, res) {
   res.sendFile(__dirname + '/vote.html');
 });
 
@@ -38,8 +40,32 @@ app.get('/summary', function (req, res) {
   res.sendFile(__dirname + '/summary.html');
 });
 
-app.get('/ideas', (req, res) => {
-  res.json(ideas);
+app.post('/ideas', (req, res) => {
+  let ideasTemp = [];
+  req.body.forEach(i => {
+    ideasTemp.push(
+      {
+        id: i.id,
+        idea: i.idea,
+        voteUp: 1,
+        voteDown: 1
+      }
+    )
+  })
+  ideas = ideasTemp;
+  io.emit('votes-updated', ideas);
+  res.sendStatus(200);
+});
+
+
+app.get('/reset', (req, res) => {
+  ideas = ideas.map(i => ({
+    ...i,
+    voteUp: 1,
+    voteDown: 1,
+  }));
+  io.emit('votes-updated', ideas);
+  res.sendStatus(200);
 })
 
 io.on('connection', function (socket) {

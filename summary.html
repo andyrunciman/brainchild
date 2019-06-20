@@ -3,59 +3,90 @@
 
 <head>
     <title>Socket.IO chat</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
     <style>
         * {
-            margin: 0;
             padding: 0;
+            margin: 0;
             box-sizing: border-box;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
         }
 
-        body {
-            font: 13px Helvetica, Arial;
+        .arrow-up {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 20px solid limegreen;
         }
 
-        form {
-            background: #000;
-            padding: 3px;
-            position: fixed;
-            bottom: 0;
+        .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 20px solid #f00;
+        }
+
+        .grey {
+            color: #898a8d;
+        }
+
+        .summary-container {
+            max-width: 1000px;
+            margin: 0 auto;
+
+        }
+
+        .title {
+            margin: 20px 0;
+            font-weight: 200;
+        }
+
+        .voting-place {
+            color: white;
+            font-size: 28px;
+            margin-left: 30px;
+            margin-right: 10px
+        }
+
+        .summary-container__idea {
             width: 100%;
+            height: 80px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            background: #4381cf;
         }
 
-        form input {
-            border: 0;
+        .summary-container__idea-name {
+            color: white;
             padding: 10px;
-            width: 90%;
-            margin-right: .5%;
+            font-weight: 800;
+            font-size: 24px;
         }
 
-        form button {
-            width: 9%;
-            background: rgb(130, 224, 255);
-            border: none;
-            padding: 10px;
+        .voting-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
         }
 
-        #messages {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
+        .voting-container__vote {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
         }
 
-        #messages li {
-            padding: 5px 10px;
-        }
-
-        #messages li:nth-child(odd) {
-            background: #eee;
+        .voting-container__summary {
+            color: white;
+            font-size: 24px;
         }
 
         .list-complete-item {
             transition: all 1s;
-
-
         }
 
         .list-complete-enter,
@@ -74,19 +105,31 @@
 </head>
 
 <body>
-    <div id="app" class="container">
+    <div id="app" class="summary-container">
+        <h1 class="title"><i class="italic grey">the</i>Idol.com - BrainChild</h1>
         <transition-group name="flip-list" tag="div">
-            <div class="row border bg-info my-3 p-3 list-complete-item" v-for="idea, i in ideas" :key="idea.id">
-                <span class="h3 text-white col-7 my-auto">{{idea.idea}}</span>
-                <span
-                    class="h2 text-center text-white col-1 p-2 border rounded-circle bg-success ">{{idea.voteUp-1}}</span>
-                <span
-                    class="h2 text-center text-white offset-1 col-1 p-2  border rounded-circle bg-danger">{{idea.voteDown-1}}</span>
-                <span class="h3 text-white offset-1  col-1 p-2 my-auto">#{{ i + 1 }}</span>
+            <div class="summary-container__idea list-complete-item" v-for="idea, i in ideas" :key="idea.id">
+                <div class="summary-container__idea-name">
+                    <span>#{{ idea.id }}</span> <span>{{idea.idea}}</span>
+                </div>
+                <div class="voting-container">
+                    <div class="voting-container__vote">
+                        <div class="arrow-up"></div>
+                        <div class="voting-container__summary">{{idea.voteUp-1}}</div>
+                    </div>
+                    <div class="voting-container__vote">
+                        <div class="arrow-down"></div>
+                        <div class="voting-container__summary">{{idea.voteDown-1|abs}}</div>
+                    </div>
+                    <div class="voting-place">#{{i|place}}</div>
+                </div>
+
+
             </div>
         </transition-group>
     </div>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"
@@ -100,19 +143,24 @@
             data: {
                 ideas: []
             },
+            filters: {
+                place: function (value) {
+                    return numeral(value + 1).format('0o');
+                },
+                abs: function (value) {
+                    return Math.abs(value);
+                }
+            },
             mounted: function () {
                 self = this;
                 socket.on('connect', function () {
                     console.log("Successfully connected!");
                 });
                 socket.on('init', function (ideas) {
-                    console.log(ideas);
                     self.ideas = ideas;
                 });
                 socket.on('votes-updated', function (ideas) {
-                    console.log("BEFORE", ideas);
                     let sorted = ideas.sort((a, b) => (b.voteUp + b.voteDown) - (a.voteUp + a.voteDown));
-                    console.log("AFTER", sorted);
                     self.ideas = sorted;
                 });
             }
