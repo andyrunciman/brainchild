@@ -28,7 +28,7 @@ const ideas = [
   }
 ]
 
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/vote', function (req, res) {
   res.sendFile(__dirname + '/vote.html');
