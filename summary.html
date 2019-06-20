@@ -78,9 +78,10 @@
         <transition-group name="flip-list" tag="div">
             <div class="row border bg-info my-3 p-3 list-complete-item" v-for="idea, i in ideas" :key="idea.id">
                 <span class="h3 text-white col-7 my-auto">{{idea.idea}}</span>
-                <span class="h2 text-center text-white col-1 p-2 border rounded bg-success ">{{idea.voteUp-1}}</span>
                 <span
-                    class="h2 text-center text-white offset-1 col-1 p-2  border rounded bg-danger">{{idea.voteDown-1}}</span>
+                    class="h2 text-center text-white col-1 p-2 border rounded-circle bg-success ">{{idea.voteUp-1}}</span>
+                <span
+                    class="h2 text-center text-white offset-1 col-1 p-2  border rounded-circle bg-danger">{{idea.voteDown-1}}</span>
                 <span class="h3 text-white offset-1  col-1 p-2 my-auto">#{{ i + 1 }}</span>
             </div>
         </transition-group>
@@ -110,7 +111,7 @@
                 });
                 socket.on('votes-updated', function (ideas) {
                     console.log("BEFORE", ideas);
-                    let sorted = ideas.sort((a, b) => (a.voteUp + a.voteDown > b.voteUp + b.voteDown) ? 0 : 1);
+                    let sorted = ideas.sort((a, b) => (b.voteUp + b.voteDown) - (a.voteUp + a.voteDown));
                     console.log("AFTER", sorted);
                     self.ideas = sorted;
                 });
