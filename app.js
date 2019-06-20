@@ -11,20 +11,20 @@ let ideas = [
   {
     id: 1,
     idea: "Car Insurance",
-    voteUp: 0,
-    voteDown: 0
+    voteUp: 1,
+    voteDown: 1
   },
   {
     id: 2,
     idea: "Car Share",
-    voteUp: 0,
-    voteDown: 0
+    voteUp: 1,
+    voteDown: 1
   },
   {
     id: 3,
     idea: "Travel Insurance",
-    voteUp: 0,
-    voteDown: 0
+    voteUp: 1,
+    voteDown: 1
   }
 ]
 
@@ -45,15 +45,15 @@ app.get('/ideas', (req, res) => {
 io.on('connection', function (socket) {
   console.log('a user connected');
   socket.emit('init', ideas);
-    socket.on('vote-sent', (vote) => {
-      console.log(vote);
+  socket.on('vote-sent', (vote) => {
     ideas = ideas.map((v) => {
       if (vote.id === v.id) {
-        return {
+        let e = {
           ...v,
-          voteUp: +vote.point > 0 ? v.voteUp + 1 : v.voteUp,
-          voteDown: +vote.point < 0 ? v.voteDown - 1 : v.voteDown
+          voteUp: vote.point > 0 ? v.voteUp + 1 : v.voteUp,
+          voteDown: vote.point < 0 ? v.voteDown - 1 : v.voteDown
         }
+        return e;
       }
       return v;
     })

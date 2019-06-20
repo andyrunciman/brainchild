@@ -1,54 +1,122 @@
 <!doctype html>
 <html>
-  <head>
+
+<head>
     <title>Socket.IO chat</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font: 13px Helvetica, Arial; }
-        form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-        form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-        form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-        #messages { list-style-type: none; margin: 0; padding: 0; }
-        #messages li { padding: 5px 10px; }
-        #messages li:nth-child(odd) { background: #eee; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px Helvetica, Arial;
+        }
+
+        form {
+            background: #000;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form input {
+            border: 0;
+            padding: 10px;
+            width: 90%;
+            margin-right: .5%;
+        }
+
+        form button {
+            width: 9%;
+            background: rgb(130, 224, 255);
+            border: none;
+            padding: 10px;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages li {
+            padding: 5px 10px;
+        }
+
+        #messages li:nth-child(odd) {
+            background: #eee;
+        }
+
+        .list-complete-item {
+            transition: all 1s;
+
+
+        }
+
+        .list-complete-enter,
+        .list-complete-leave-to
+
+        /* .list-complete-leave-active below version 2.1.8 */
+            {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .list-complete-leave-active {
+            position: absolute;
+        }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     <div id="app" class="container">
-        <div class="row border bg-info my-3 p-3" v-for="idea, i in ideas">
-            <span class="h3 text-white col-7 my-auto">{{idea.idea}}</span>
-            <span class="h2 text-center text-white col-1 p-2 border rounded bg-success ">{{idea.voteUp}}</span>
-            <span class="h2 text-center text-white offset-1 col-1 p-2  border rounded bg-danger">{{idea.voteDown}}</span>
-            <span class="h3 text-white offset-1  col-1 p-2 my-auto">#{{ i + 1 }}</span>
-        </div>
+        <transition-group name="flip-list" tag="div">
+            <div class="row border bg-info my-3 p-3 list-complete-item" v-for="idea, i in ideas" :key="idea.id">
+                <span class="h3 text-white col-7 my-auto">{{idea.idea}}</span>
+                <span class="h2 text-center text-white col-1 p-2 border rounded bg-success ">{{idea.voteUp-1}}</span>
+                <span
+                    class="h2 text-center text-white offset-1 col-1 p-2  border rounded bg-danger">{{idea.voteDown-1}}</span>
+                <span class="h3 text-white offset-1  col-1 p-2 my-auto">#{{ i + 1 }}</span>
+            </div>
+        </transition-group>
     </div>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"
+        integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js"
+        integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
     <script>
-    var socket = io();
-    var app = new Vue({
-        el: '#app',
-        data: {
-            ideas: []
-        },
-        mounted: function(){
-            self = this;
-            socket.on('connect', function () {
-                console.log("Successfully connected!");
-            });
-            socket.on('init', function (ideas) {
-                console.log(ideas);
-                self.ideas = ideas;
-            });
-            socket.on('votes-updated', function (ideas) {
-                console.log(ideas);
-                self.ideas = ideas;
-            });
-        }
-    })
+        var socket = io();
+        var app = new Vue({
+            el: '#app',
+            data: {
+                ideas: []
+            },
+            mounted: function () {
+                self = this;
+                socket.on('connect', function () {
+                    console.log("Successfully connected!");
+                });
+                socket.on('init', function (ideas) {
+                    console.log(ideas);
+                    self.ideas = ideas;
+                });
+                socket.on('votes-updated', function (ideas) {
+                    console.log("BEFORE", ideas);
+                    let sorted = ideas.sort((a, b) => (a.voteUp + a.voteDown > b.voteUp + b.voteDown) ? 0 : 1);
+                    console.log("AFTER", sorted);
+                    self.ideas = sorted;
+                });
+            }
+        })
     </script>
-  </body>
+</body>
+
 </html>
