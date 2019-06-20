@@ -16,8 +16,11 @@
   </head>
   <body>
     <div id="app" class="container">
-        <div class="row border bg-info my-3" v-for="idea in ideas">
-            <span class="text-white p-3">{{idea.idea}}</span>
+        <div class="row border bg-info my-3 p-3" v-for="idea, i in ideas">
+            <span class="h3 text-white col-7 my-auto">{{idea.idea}}</span>
+            <span class="h2 text-center text-white col-1 p-2 border rounded bg-success ">{{idea.voteUp}}</span>
+            <span class="h2 text-center text-white offset-1 col-1 p-2  border rounded bg-danger">{{idea.voteDown}}</span>
+            <span class="h3 text-white offset-1  col-1 p-2 my-auto">#{{ i + 1 }}</span>
         </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
@@ -32,15 +35,19 @@
             ideas: []
         },
         mounted: function(){
-            var self = this;
-            setTimeout(
-                axios.get('/ideas')
-                    .then(function (response) {
-                        self.ideas = response.data;
-                    })
-            , 1000)
+            self = this;
+            socket.on('connect', function () {
+                console.log("Successfully connected!");
+            });
+            socket.on('init', function (ideas) {
+                console.log(ideas);
+                self.ideas = ideas;
+            });
+            socket.on('votes-updated', function (ideas) {
+                console.log(ideas);
+                self.ideas = ideas;
+            });
         }
-
     })
     </script>
   </body>

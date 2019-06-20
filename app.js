@@ -7,7 +7,7 @@ var cors = require('cors')
 
 app.use(cors());
 
-const ideas = [
+let ideas = [
   {
     id: 1,
     idea: "Car Insurance",
@@ -44,19 +44,20 @@ app.get('/ideas', (req, res) => {
 
 io.on('connection', function (socket) {
   console.log('a user connected');
-  socket.emit('votes-updated', ideas);
-  socket.on('vote-sent', (vote) => {
+  socket.emit('init', ideas);
+    socket.on('vote-sent', (vote) => {
+      console.log(vote);
     ideas = ideas.map((v) => {
       if (vote.id === v.id) {
         return {
           ...v,
-          voteUp: vote.point > 0 ? v.voteUp++ : v.voteUp,
-          voteDown: vote.point < 0 ? v.voteDown++ : v.voteDown
+          voteUp: +vote.point > 0 ? v.voteUp + 1 : v.voteUp,
+          voteDown: +vote.point < 0 ? v.voteDown - 1 : v.voteDown
         }
       }
       return v;
     })
-    console.log(ideas);
+    // console.log(ideas);
     io.emit('votes-updated', ideas);
   });
 });

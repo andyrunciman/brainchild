@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font: 13px Helvetica, Arial; }
@@ -14,17 +15,42 @@
     </style>
   </head>
   <body>
-    <div id="app">
-        {{ message }}
+    <div id="app" class="container">
+        <div class="row border bg-info my-3 p-3" v-for="idea, i in ideas">
+            <span class="h3 text-white col-7 my-auto">{{idea.idea}}</span>
+            <button @click="vote(1, idea.id)" class="h2 text-center text-white col-2 p-2 border rounded bg-success ">Vote Up</button>
+            <button @click="vote(-1, idea.id)"class="h2 text-center text-white offset-1 col-2 p-2  border rounded bg-danger">Vote Down</spbuttonan>
+        </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
     <script>
     var socket = io();
     var app = new Vue({
         el: '#app',
         data: {
-            message: 'Hello Vue!'
+            ideas: []
+        },
+        methods:{
+            vote: function(point, id){
+                console.log("test");
+                socket.emit("vote-sent", {
+                    id,
+                    point
+                })
+            }
+        },
+        mounted: function(){
+            self = this;
+            socket.on('connect', function () {
+                console.log("Successfully connected!");
+            });
+            socket.on('init', function (ideas) {
+                console.log(ideas);
+                self.ideas = ideas;
+            });
         }
     })
     </script>
