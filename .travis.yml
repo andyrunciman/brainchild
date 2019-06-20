@@ -1,8 +1,6 @@
 sudo: required
-
-services: 
+services:
   - docker
-
 deploy:
   provider: elasticbeanstalk
   region: "eu-west-2"
