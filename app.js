@@ -44,7 +44,7 @@ app.get('/ideas', (req, res) => {
 
 io.on('connection', function (socket) {
   console.log('a user connected');
-  socket.on('vote-recieved', (data) => {
+  socket.on('vote-sent', (vote) => {
     ideas = ideas.map((v) => {
       if (vote.id === v.id) {
         return {
